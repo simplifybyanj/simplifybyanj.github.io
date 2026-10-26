@@ -128,6 +128,16 @@ dialog::backdrop{background:rgba(28,43,58,.55)}
     <label for="l_pass">Password</label><input id="l_pass" type="password" required autocomplete="current-password">
     <p class="err" id="loginErr" role="alert"></p>
     <button class="btn" style="width:100%;padding:12px">Log in</button>
+    <p style="text-align:center;margin:12px 0 0"><a href="#" id="forgotLink" style="color:#7E57C2;font-weight:700">Forgot password?</a></p>
+    <p id="forgotMsg" style="text-align:center;font-size:14px;color:#2E7D32;margin:8px 0 0"></p>
+  </form>
+  <form id="newPassForm" class="f hidden">
+    <h1>Set a new password</h1>
+    <p>Type your new admin password. Use at least 8 characters.</p>
+    <label for="np1">New password</label><input id="np1" type="password" autocomplete="new-password" minlength="8" required>
+    <label for="np2">Type it again</label><input id="np2" type="password" autocomplete="new-password" minlength="8" required>
+    <p class="err" id="npErr" role="alert"></p>
+    <button class="btn" style="width:100%;padding:12px">Save new password</button>
   </form>
 </section>
 
@@ -404,6 +414,31 @@ let orders = [], products = [], priv = {}, settings = {}, editing = null;
 function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.remove('hidden'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.add('hidden'),3200); }
 
 /* ---------- Auth ---------- */
+/* ---------- Forgot password ---------- */
+let recovering = /type=recovery/.test(location.hash) || /type=recovery/.test(location.search);
+function showNewPass(){ recovering = true; $('loginView').classList.remove('hidden'); $('appView').classList.add('hidden'); $('loginForm').classList.add('hidden'); $('newPassForm').classList.remove('hidden'); }
+$('forgotLink').addEventListener('click', async e => {
+  e.preventDefault();
+  const email = $('l_email').value.trim();
+  $('loginErr').textContent = ''; $('forgotMsg').textContent = '';
+  if (!/^\S+@\S+\.\S+$/.test(email)) { $('loginErr').textContent = 'Type your admin email first, then tap Forgot password.'; return; }
+  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname });
+  if (error) { $('loginErr').textContent = /rate|seconds/i.test(error.message) ? 'Please wait a few minutes before asking for another reset email.' : 'Could not send the reset email. Try again in a few minutes.'; return; }
+  $('forgotMsg').textContent = `If ${email} is an admin email, a reset link is on its way. Check your inbox and spam folder.`;
+});
+$('newPassForm').addEventListener('submit', async e => {
+  e.preventDefault(); $('npErr').textContent = '';
+  const a = $('np1').value, b = $('np2').value;
+  if (a.length < 8) return $('npErr').textContent = 'Use at least 8 characters.';
+  if (a !== b) return $('npErr').textContent = 'The two passwords do not match.';
+  const { error } = await sb.auth.updateUser({ password: a });
+  if (error) return $('npErr').textContent = 'Could not save. Open the reset link from your email again.';
+  recovering = false; history.replaceState(null, '', location.pathname);
+  $('newPassForm').classList.add('hidden'); $('loginForm').classList.remove('hidden');
+  toast('✅ New password saved.');
+  const { data } = await sb.auth.getSession(); onSession('SIGNED_IN', data.session);
+});
+
 $('loginForm').addEventListener('submit', async e => {
   e.preventDefault(); $('loginErr').textContent='';
   const { error } = await sb.auth.signInWithPassword({ email:$('l_email').value.trim(), password:$('l_pass').value });
@@ -416,6 +451,7 @@ $('logout').addEventListener('click', () => sb.auth.signOut({ scope: 'local' }))
 let adminUid = null;
 sb.auth.onAuthStateChange((evt, session) => {
   if (evt === 'TOKEN_REFRESHED' || evt === 'USER_UPDATED') return;
+  if (evt === 'PASSWORD_RECOVERY') { setTimeout(showNewPass, 0); return; }
   setTimeout(() => onSession(evt, session), 0);
 });
 async function onSession(evt, session){
@@ -424,6 +460,7 @@ async function onSession(evt, session){
     $('appView').classList.add('hidden'); $('appView').dataset.ready=''; $('loginView').classList.remove('hidden');
     return;
   }
+  if (recovering) { showNewPass(); return; }          // finish setting a new password first
   if (adminUid === session.user.id) return;          // already checked this login
   const { data: ok, error } = await sb.rpc('is_store_admin');
   if (error) { $('loginErr').textContent = 'Could not check admin access. Wait a minute, then refresh.'; return; }
