@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>See Inside · Simplify by Anj</title>
+<style>
+:root{--ink:#3B2A5C;--sub:#6B5A8A;--pur:#7D5CD6;--pink:#E9679B;--card:#fff;--line:#E7DEFA}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;color:var(--ink);background:linear-gradient(160deg,#FFF6CC 0%,#F3ECFF 40%,#DDF1FF 100%);min-height:100vh}
+header{display:flex;align-items:center;gap:12px;padding:16px;max-width:1100px;margin:0 auto}
+header img{width:52px;height:52px}
+header .b{font-weight:700;color:var(--pur)}
+header a.back{margin-left:auto;color:var(--sub);font-size:14px;text-decoration:none}
+main{max-width:1100px;margin:0 auto;padding:0 16px 120px}
+h1{margin:8px 0 4px;font-size:28px}
+.lead{margin:0 0 14px;color:var(--sub);font-size:15px;line-height:1.5}
+.ed{display:flex;gap:8px;margin-bottom:12px}
+.ed button{flex:1;padding:12px;border-radius:14px;border:2px solid var(--line);background:#fff;font-size:15px;font-weight:700;color:var(--ink);cursor:pointer}
+.ed button[aria-pressed="true"]{border-color:var(--pur);background:#F3ECFF}
+.tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{flex:none;padding:9px 14px;border-radius:30px;border:0;background:#fff;color:var(--ink);font-size:14px;cursor:pointer;box-shadow:0 3px 10px rgba(80,50,140,.08)}
+.tabs button[aria-selected="true"]{background:var(--pur);color:#fff}
+.note{font-size:14px;color:var(--sub);margin:12px 2px}
+.frame{background:var(--card);border-radius:18px;padding:10px;box-shadow:0 14px 40px rgba(80,50,140,.14);overflow:auto;position:relative;-webkit-overflow-scrolling:touch}
+.frame img{display:block;width:100%;min-width:760px;height:auto;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;pointer-events:none}
+.hint{font-size:12px;color:var(--sub);margin-top:6px;text-align:center}
+.feat{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:18px}
+.feat div{background:#fff;border-radius:14px;padding:12px 14px;font-size:14px;line-height:1.45}
+.feat b{display:block;color:var(--pur);margin-bottom:2px}
+.buy{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.95);backdrop-filter:blur(6px);border-top:1px solid var(--line);padding:12px 16px}
+.buy .in{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:12px}
+.buy .p{font-size:22px;font-weight:800}
+.buy .p small{display:block;font-size:12px;font-weight:400;color:var(--sub)}
+.buy a{margin-left:auto;background:var(--pink);color:#fff;text-decoration:none;font-weight:700;padding:14px 22px;border-radius:14px;font-size:16px}
+.ed button{padding:10px 6px;font-size:14px}
+.bundle{display:block;margin-top:12px;background:#FFE3EE;border:2px dashed var(--pink);border-radius:14px;padding:12px 14px;color:var(--ink);text-decoration:none;font-size:14px;line-height:1.4}
+.bundle s{color:var(--sub)}
+.bundle[hidden]{display:none}
+</style>
+</head>
+<body oncontextmenu="return false">
+<header>
+  <img src="preview/logo.png" alt="Simplify by Anj logo">
+  <span class="b">Simplify by Anj</span>
+  <a class="back" href="./">← Back to store</a>
+</header>
+<main>
+  <h1 id="title">See inside</h1>
+  <p class="lead" id="lead"></p>
+  <div class="ed" role="group" aria-label="Choose product">
+    <button type="button" data-ed="coffee" aria-pressed="true">☕ Coffee Shop</button>
+    <button type="button" data-ed="food" aria-pressed="false">🍛 Food Business</button>
+    <button type="button" data-ed="sop" aria-pressed="false">📋 Café SOP Kit</button>
+    <button type="button" data-ed="carwash" aria-pressed="false">🚗 Carwash</button>
+    <button type="button" data-ed="installment" aria-pressed="false">💸 Installment & Budget</button>
+  </div>
+  <div class="tabs" role="tablist" id="tabs"></div>
+  <p class="note" id="note"></p>
+  <div class="frame"><img id="shot" alt="" draggable="false"></div>
+  <p class="hint">Swipe sideways to see the whole sheet.</p>
+  <a class="bundle" id="bundle" href="./#buy=8b9742ca-c1ba-4b14-b9dc-79e40a917c08">☕📋 <b>Café Starter Bundle:</b> Coffee Shop Tracker + SOP Kit for <b>₱1,299</b> <s>₱1,598</s> →</a>
+  <div class="feat" id="feat"></div>
+</main>
+<div class="buy"><div class="in">
+  <div class="p"><span id="bprice">₱899</span><small id="bname">Coffee Shop Tracker</small></div>
+  <a href="./" id="buyLink">Buy now</a>
+</div></div>
+<script>
+const TRK=[
+ ["start","Start Here","Your guide in English (a Taglish version is in the next tab)."],
+ ["dashboard","Dashboard","Your whole business on one screen. Updates by itself."],
+ ["sales","Sales","Pick the item and type the quantity. Price, cost and profit fill in."],
+ ["cashflow","Cash Flow","Month-by-month cash in, cash out, closing cash and net profit."],
+ ["menu","Menu & Pricing","Real cost per item plus 3 suggested prices. Red means raise your price."],
+ ["recipes","Recipe Costing","What goes in each item and how much it costs."],
+ ["inventory","Inventory","Stock in, stock out and waste. Turns red when it's time to reorder."]];
+const SOP=[
+ ["start","Start Here","Your guide in English (a Taglish version is in the next tab)."],
+ ["calibration","Calibration","Log each test shot. It tells your barista what to fix until PASS."],
+ ["opening","Opening Checklist","19 opening tasks ready. Tick per day, see % done. Closing checklist works the same."],
+ ["cleaning","Cleaning Schedule","Daily to every 6 months. Turns red when a task is OVERDUE."],
+ ["recipes","Recipe Cards","Standard recipe for every drink. Print and post at the bar."],
+ ["temperature","Temperature Log","Turns red when a chiller is too warm, so you can save your stock."],
+ ["waste","Waste Log","See where you lose money: expired, spilled, wrong orders."],
+ ["training","Barista Training","Track each new barista's skills from 'Not yet' to 'Signed off'."]];
+const CW=[
+ ["start","Start Here","Your guide in English (a Taglish version is also included)."],
+ ["dashboard","Dashboard","Sales, net profit, cars washed, unpaid customers and top washers. Updates by itself."],
+ ["employees","Employee Tracker","Pick your cutoff. See cars per vehicle type, commission, allowance, vale and balance per washer."],
+ ["carlog","Car Log","One row per car. Pick the vehicle, service and washer. Price and commission fill in."],
+ ["dailycash","Daily Cash","Closing count: cash that should be in the drawer vs actual, over or short."],
+ ["cashflow","Cash Flow","Month-by-month cash in, cash out, closing cash and net profit."],
+ ["services","Services & Prices","Price and washer commission per vehicle type. Starter PH prices included."],
+ ["supplies","Supplies","Shampoo, wax, tire black... auto-deducted per service. Turns red when it's time to reorder."]];
+const IB=[
+ ["start","Start Here","Your guide in English (a Taglish version is also included)."],
+ ["dashboard","Dashboard","Past due, due this month, due next month, total paid, balance left and where your money goes."],
+ ["calendar","Calendar","Pick a month from 2026 to 2028. See every due date. ✓ = paid, ⚠ = late."],
+ ["installments","Installments","One row per plan. Progress moves by itself: 0 of 12 → 1 of 12 → 2 of 12."],
+ ["budget","Budget Planner","Plan your income and budget per category, then see plan vs actual each month."],
+ ["payments","Payments","Log each payment. Pick the plan, type the amount. That's it."],
+ ["expenses","Expenses","Everyday spending: food, bills, pamasahe, load..."],
+ ["income","Income","Salary, commission, side income. Feeds your Budget Planner."],
+ ["summary","Monthly Summary","Spending per category for every month, with charts."]];
+const P={
+ coffee:{name:"Coffee Shop Tracker",price:"₱899",pid:"c3de57d9-f004-475e-8bf1-e36b2b6d0ed4",tabs:TRK,first:"dashboard",
+   lead:"Preview with sample data. The file you buy has blank logs and a starter menu with costing.",
+   feat:[["Automatic costing","Type the recipe once. Cost, profit and food cost % compute for every item."],["3 suggested prices","Suggested, Lower and Premium price for each item, rounded to ₱5."],["Cash flow & dashboard","Monthly and yearly cash flow, top items, break-even per day."],["English + Taglish guide","Step-by-step instructions inside the file. Beginner friendly."]]},
+ food:{name:"Food Business Tracker",price:"₱899",pid:"95c94c55-a521-4e16-9cc9-527285a6164e",tabs:TRK,first:"dashboard",
+   lead:"Preview with sample data. The file you buy has blank logs and a starter menu with costing.",
+   feat:[["Automatic costing","Type the recipe once. Cost, profit and food cost % compute for every meal."],["3 suggested prices","Suggested, Lower and Premium price for each item, rounded to ₱5."],["Cash flow & dashboard","Monthly and yearly cash flow, top items, break-even per day."],["English + Taglish guide","Step-by-step instructions inside the file. Beginner friendly."]]},
+ carwash:{name:"Carwash Business Tracker",price:"₱399",pid:"26d65641-2d4c-4891-aef4-6b951db84449",tabs:CW,first:"dashboard",
+   lead:"Preview with sample data. The file you buy has blank logs and starter services, prices and commissions.",
+   feat:[["Washer commission per car","Set the commission per service and vehicle type. 2 washers on 1 car? It splits for you."],["Employee tracker","Cars handled, days present, allowance, vale and balance to pay per cutoff."],["Daily cash & cash flow","End-of-day cash count, monthly cash flow, net profit and unpaid customers."],["English + Taglish guide","Step-by-step instructions inside the file. Beginner friendly."]]},
+ installment:{name:"Installment & Budget Tracker",price:"₱249",pid:"06fbf2cf-3745-46e3-8d16-02860bd95639",tabs:IB,first:"dashboard",
+   lead:"Preview with sample data. The file you buy is blank and ready for your own installments and budget.",
+   feat:[["Auto progress","Log a payment and it moves from 0 of 12 to 1 of 12 by itself, with balance and next due date."],["Due date calendar","Every due date from 2026 to 2028, with paid and late marks."],["Budget planner + expenses","Plan vs actual income and spending per category, savings goal and charts."],["English + Taglish guide","Step-by-step instructions inside the file. Beginner friendly."]]},
+ sop:{name:"Café SOP Starter Kit",price:"₱699",pid:"dfd7c913-a9a9-4fcc-95cf-1330456a66c6",tabs:SOP,first:"calibration",
+   lead:"Preview with sample entries. The file you buy comes with ready tasks and recipes, and blank logs for your café.",
+   feat:[["Made for new cafés","Ready-made opening, closing and cleaning tasks. Start on day one."],["Smart alerts","Tells you what to fix: grind finer, chiller too warm, task overdue."],["Printable","Every tab fits one page wide. Post it at the bar or use a clipboard."],["English + Taglish guide","Step-by-step instructions inside the file. Beginner friendly."]]}};
+const q=new URLSearchParams(location.search);
+let ed=P[q.get("ed")]?q.get("ed"):"coffee", tab=P[ed].first;
+const $=id=>document.getElementById(id);
+function render(){
+  const p=P[ed]; if(!p.tabs.some(t=>t[0]===tab)) tab=p.first;
+  document.querySelectorAll(".ed button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.ed===ed));
+  $("tabs").innerHTML=p.tabs.map(([k,l])=>`<button role="tab" data-t="${k}" aria-selected="${k===tab}">${l}</button>`).join("");
+  const t=p.tabs.find(x=>x[0]===tab);
+  $("note").textContent=t[2]; $("lead").textContent=p.lead;
+  $("shot").src=`preview/${ed}-${tab}.jpg`; $("shot").alt=`${p.name} – ${t[1]} sample`;
+  $("title").textContent="See inside the "+p.name;
+  $("bname").textContent=p.name; $("bprice").textContent=p.price;
+  $("buyLink").href="./#buy="+p.pid;
+  $("bundle").hidden = !["coffee","sop"].includes(ed);
+  $("feat").innerHTML=p.feat.map(([b,x])=>`<div><b>${b}</b>${x}</div>`).join("");
+}
+document.querySelector(".ed").addEventListener("click",e=>{const b=e.target.closest("button");if(b){ed=b.dataset.ed;tab=P[ed].first;render();}});
+$("tabs").addEventListener("click",e=>{const b=e.target.closest("button");if(b){tab=b.dataset.t;render();}});
+document.addEventListener("dragstart",e=>e.preventDefault());
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,807 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Store admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#2E2A4A; --sea:#7D5CD6; --sea-dk:#5E42B0; --mango:#FFF1B8; --mango-lt:#FFF1B8;
+  --pink:#FFD9E8; --sky:#D6EEFF; --purple:#E6DAFF;
+  --bg:#FDFBFF; --paper:#FFFFFF; --line:#ECE6F7; --muted:#6C6788; --err:#C0284F; --ok:#5E42B0;
+  --head:"Fredoka","Trebuchet MS",system-ui,sans-serif;
+  --body:"Nunito",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--body);-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--mango);outline-offset:2px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+h1,h2,h3{font-family:var(--head);margin:0}
+.hidden{display:none!important}
+
+a.btn{text-decoration:none;text-align:center;display:block}
+#sDlg .btn{white-space:normal}
+.btn{background:var(--sea);color:#fff;border:0;border-radius:999px;padding:9px 14px;font-weight:700;cursor:pointer;white-space:nowrap}
+.btn:hover{background:var(--sea-dk)}
+.btn:disabled{opacity:.6;cursor:wait}
+.btn.ghost{background:var(--paper);color:var(--ink);border:1px solid var(--line)}
+.btn.ghost:hover{background:var(--bg)}
+.btn.warn{background:var(--paper);color:var(--err);border:1px solid #F1C7C2}
+.btn.sm{padding:6px 10px;font-size:13px}
+
+/* Login */
+.login{min-height:100vh;display:grid;place-items:center;padding:20px}
+.login form{background:var(--paper);border:2px solid var(--line);border-radius:24px;text-align:left;padding:28px;width:min(380px,100%)}
+.login h1{font-size:28px;margin-bottom:4px}
+.login p{color:var(--muted);margin:0 0 12px}
+
+/* App shell */
+.bar{background:linear-gradient(90deg,#E6DAFF,#FFD9E8 50%,#D6EEFF);color:var(--ink)}
+.bar .logo{display:flex;align-items:center;gap:10px;margin-right:auto}
+.bar h1{margin-right:0}
+.bar .wrap{display:flex;align-items:center;gap:16px;min-height:60px;flex-wrap:wrap;padding-top:8px;padding-bottom:8px}
+.bar h1{font-size:20px;margin-right:auto}
+.tabs{display:flex;gap:4px}
+.tab{background:rgba(255,255,255,.6);border:0;color:var(--ink);padding:8px 12px;border-radius:6px;cursor:pointer;font-weight:600}
+.tab[aria-selected="true"]{background:var(--sea);color:#fff}
+.bar a,.bar .out{color:var(--ink);font-size:14px;background:none;border:0;cursor:pointer;text-decoration:underline}
+main{padding:24px 0 60px}
+.head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.head h2{font-size:26px}
+
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.stat{border:0;border-radius:20px;padding:14px 16px}
+.stat b{display:block;font:800 26px/1.1 var(--head)}
+.stat span{color:var(--muted);font-size:13px}
+.stat:nth-child(1){background:var(--pink)}.stat:nth-child(2){background:var(--sky)}.stat:nth-child(3){background:var(--mango)}.stat:nth-child(4){background:var(--purple)}
+.stat{display:flex;gap:12px;align-items:center}.stat Xflex:none}
+@media (max-width:760px){.stats{grid-template-columns:1fr 1fr}}
+
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.tools input,.tools select{padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:#fff}
+.tools input{flex:1;min-width:180px}
+
+/* Tables */
+.tbl{background:var(--paper);border:2px solid var(--line);border-radius:20px;overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:760px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;color:var(--muted);font-weight:600;background:#FAFBFA}
+tr:last-child td{border-bottom:0}
+td .sub{display:block;color:var(--muted);font-size:13px}
+.acts{display:flex;gap:6px;flex-wrap:wrap}
+.pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:700}
+.pill.pending{background:var(--mango);color:#7A5300}
+.pill.approved{background:var(--purple);color:var(--sea-dk)}
+.pill.rejected{background:#FBE4E1;color:var(--err)}
+.pill.off{background:#E8ECEF;color:var(--muted)}
+.empty{padding:28px;color:var(--muted);text-align:center}
+
+/* Forms */
+label{display:block;font-weight:600;font-size:14px;margin:12px 0 4px}
+label small{font-weight:400;color:var(--muted)}
+.f input:not([type=checkbox]),.f select,.f textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:#fff}
+.f textarea{min-height:90px;resize:vertical}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:560px){.two{grid-template-columns:1fr}}
+.card{background:var(--paper);border:2px solid var(--line);border-radius:20px;padding:20px;max-width:720px}
+.note{color:var(--muted);font-size:13px;margin:4px 0 0}
+.cur{font-size:13px;color:var(--sea);margin-top:4px;word-break:break-all}
+.check{display:flex;gap:8px;align-items:center;margin-top:14px;font-weight:600}
+.qrprev{width:140px;height:140px;object-fit:contain;border:1px solid var(--line);border-radius:4px;margin-top:8px;background:#fff}
+.err{color:var(--err);font-weight:600;min-height:1.3em;margin:10px 0 0}
+
+dialog{border:0;border-radius:8px;padding:0;width:min(640px,94vw);max-height:92vh}
+dialog::backdrop{background:rgba(28,43,58,.55)}
+.dlg{padding:22px 22px 24px}
+.dlg h2{font-size:24px;margin-bottom:4px}
+.foot{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:6px;font-weight:600;z-index:9;max-width:90vw}
+.i3d{filter:drop-shadow(0 4px 6px rgba(94,66,176,.18))}
+.anj{flex:none}
+.login .anj{margin-bottom:8px}
+.f input:not([type=checkbox]),.f select,.f textarea{border-radius:12px!important}
+.langbox{border-radius:16px;padding:4px 14px 12px;margin-top:10px}
+.langbox.en{background:var(--sky)} .langbox.tl{background:var(--mango)}
+.langbox h4{margin:10px 0 0;font:600 16px/1.2 var(--head)}
+.langbox h4 small{font:400 13px var(--body);color:var(--muted)}
+#dBody table{min-width:0}#dBody td:first-child{font-weight:800;width:40%}
+.dupw{display:block;margin-top:4px;background:#FBE4E1;color:#B42318;font-weight:800;font-size:12px;border-radius:8px;padding:2px 8px}
+</style>
+</head>
+<body>
+
+<!-- Login -->
+<section class="login" id="loginView">
+  <form id="loginForm" class="f">
+    <div id="loginLogo"></div>
+    <h1>Simplify by Anj</h1>
+    <p><b style="color:#D9558B">Anjeleen Pateña</b><br>Log in with your admin email.</p>
+    <label for="l_email">Email</label><input id="l_email" type="email" required autocomplete="username">
+    <label for="l_pass">Password</label><input id="l_pass" type="password" required autocomplete="current-password">
+    <p class="err" id="loginErr" role="alert"></p>
+    <button class="btn" style="width:100%;padding:12px">Log in</button>
+  </form>
+</section>
+
+<!-- App -->
+<div id="appView" class="hidden">
+  <header class="bar"><div class="wrap">
+    <div class="logo"><span id="barLogo"></span><h1 id="barName">Simplify by Anj</h1></div>
+    <nav class="tabs" role="tablist">
+      <button class="tab" role="tab" data-tab="orders" aria-selected="true">Orders</button>
+      <button class="tab" role="tab" data-tab="products" aria-selected="false">Products</button>
+      <button class="tab" role="tab" data-tab="settings" aria-selected="false">Settings</button>
+    </nav>
+    <a href="index.html" target="_blank" rel="noopener">View store</a>
+    <button class="out" id="logout">Log out</button>
+  </div></header>
+
+  <main class="wrap">
+    <!-- Orders -->
+    <section id="tab-orders">
+      <div class="head"><h2>Orders and payments</h2>
+        <div class="acts"><button class="btn ghost" id="refresh">Refresh</button><button class="btn ghost" id="csv">Export CSV</button></div></div>
+      <div class="stats" id="stats"></div>
+      <div class="tools">
+        <input id="q" type="search" placeholder="Search name, email, ref no., product">
+        <select id="fStatus"><option value="">All status</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select>
+        <select id="fProduct"><option value="">All products</option></select>
+      </div>
+      <div class="tbl" id="ordersTbl"></div>
+    </section>
+
+    <!-- Products -->
+    <section id="tab-products" class="hidden">
+      <div class="head"><h2>Products</h2><button class="btn" id="addProduct">Add product</button></div>
+      <div class="tbl" id="productsTbl"></div>
+    </section>
+
+    <!-- Settings -->
+    <section id="tab-settings" class="hidden">
+      <div class="head"><h2>Settings</h2></div>
+      <form class="card f" id="settingsForm">
+        <h3>Store page</h3>
+        <label for="s_name">Store name</label><input id="s_name" required>
+        <label for="s_tag">Tagline</label><input id="s_tag">
+        <h3 style="margin-top:22px">Payment</h3>
+        <label for="s_qr">Extra QR code <small>(optional; GCash, Maya, MariBank, PSBank are built in)</small></label>
+        <input id="s_qr" type="file" accept="image/*">
+        <img id="qrPrev" class="qrprev hidden" alt="Current QR code">
+        <label for="s_acct">Account name shown to buyers</label><input id="s_acct" placeholder="e.g. Anjeleen P.">
+        <label for="s_pay">Payment instructions</label><input id="s_pay">
+        <label for="s_del">Delivery note <small>(shown after checkout and in the footer)</small></label><input id="s_del">
+        <h3 style="margin-top:22px">Delivery email</h3>
+        <label for="s_sender">Send emails from this Gmail <small>(must be logged in on this browser)</small></label><input id="s_sender" type="email" placeholder="simplifybyanj@gmail.com">
+        <p class="note">Use {name}, {product}, {language}, {link}, {ref}, {store}. They fill in automatically.</p>
+        <label for="s_subj">Subject</label><input id="s_subj">
+        <label for="s_body">Message</label><textarea id="s_body" rows="10"></textarea>
+        <p class="err" id="setErr" role="alert"></p>
+        <div class="foot"><button class="btn" id="saveSettings">Save settings</button></div>
+      </form>
+    </section>
+  </main>
+</div>
+
+<!-- Product dialog -->
+<dialog id="pDlg">
+  <form class="dlg f" id="pForm" novalidate>
+    <h2 id="pTitle">Add product</h2>
+    <label for="p_name">Product name</label><input id="p_name" required placeholder="Real Estate Lead & Viewing Tracker">
+    <div class="two">
+      <div><label for="p_cat">Category</label><input id="p_cat" list="cats" placeholder="Real estate"></div>
+      <div><label for="p_kind">Type</label><input id="p_kind" list="kinds" placeholder="Google Sheet template"></div>
+    </div>
+    <datalist id="cats"><option>Real estate</option><option>Insurance</option><option>Loans</option><option>Bundles</option><option>General</option></datalist>
+    <datalist id="kinds"><option>Google Sheet template</option><option>Video tutorial</option><option>PDF guide</option><option>Bundle</option></datalist>
+    <div class="two">
+      <div><label for="p_price">Price (₱)</label><input id="p_price" type="number" min="0" step="1" required></div>
+      <div><label for="p_sort">Display order <small>(1 shows first)</small></label><input id="p_sort" type="number" step="1" value="0"></div>
+    </div>
+    <label for="p_sum">Short description <small>(shows on the card)</small></label><input id="p_sum" maxlength="140">
+    <label for="p_desc">Full description <small>(shows at checkout)</small></label><textarea id="p_desc" rows="5" placeholder="What's inside, who it's for, how to use it"></textarea>
+    <label for="p_cover">Cover image</label><input id="p_cover" type="file" accept="image/*"><p class="cur" id="curCover"></p>
+
+    <h3 style="margin-top:20px">What the buyer receives</h3>
+    <p class="note">Add a file, a link, or both. Only you can see these.</p>
+    <div class="langbox en"><h4>English version</h4>
+      <label for="p_file">File <small>(PDF, ZIP, XLSX, etc.)</small></label><input id="p_file" type="file"><p class="cur" id="curFile"></p>
+      <label for="p_link">Link <small>(Google Sheet "/copy" link or video link)</small></label><input id="p_link" type="url" placeholder="https://docs.google.com/spreadsheets/d/…/copy"></div>
+    <div class="langbox tl"><h4>Tagalog version <small>(optional)</small></h4>
+      <label for="p_file_tl">File</label><input id="p_file_tl" type="file"><p class="cur" id="curFileTl"></p>
+      <label for="p_link_tl">Link</label><input id="p_link_tl" type="url" placeholder="https://docs.google.com/spreadsheets/d/…/copy"></div>
+    <p class="note">Buyers can only pick the versions that have a file or link.</p>
+    <label class="check"><input id="p_active" type="checkbox" checked> Show on store</label>
+    <p class="err" id="pErr" role="alert"></p>
+    <div class="foot"><button type="button" class="btn ghost" id="pCancel">Cancel</button><button class="btn" id="pSave">Save product</button></div>
+  </form>
+</dialog>
+
+<dialog id="dDlg"><div class="dlg"><h2 id="dTitle">Order details</h2><div class="tbl" id="dBody" style="margin-top:12px"></div>
+  <div class="foot"><button class="btn ghost" id="dCopy" type="button">Copy all</button><button class="btn" type="button" onclick="document.getElementById('dDlg').close()">Close</button></div></div></dialog>
+<dialog id="sDlg"><div class="dlg"><h2>Send the email</h2>
+  <p class="note">The message is ready. Pick how to send it, then press <b>Send</b> in your email app.</p>
+  <p style="margin:10px 0 4px"><b>To:</b> <span id="sTo"></span></p>
+  <p style="margin:0 0 12px;font-size:14px;color:#6b6585" id="sSub"></p>
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <a class="btn" id="sGmailApp" href="#">📧 Open in Gmail app</a>
+    <a class="btn ghost" id="sMail" href="#">✉️ Open in iPhone Mail / other app</a>
+    <a class="btn ghost" id="sWeb" href="#" target="_blank" rel="noopener">🌐 Open Gmail website</a>
+    <button class="btn ghost" type="button" id="sCopy">📋 Copy message (paste in Gmail, Messenger or Viber)</button>
+  </div>
+  <div class="foot"><button class="btn ghost" type="button" onclick="document.getElementById('sDlg').close()">Done</button></div></div></dialog>
+<dialog id="rDlg"><div class="dlg f"><h2 id="rTitle">Reject order</h2>
+  <p class="note">Choose the reason. A polite email is sent to the buyer automatically.</p>
+  <div id="rList"></div>
+  <label for="rNote">Add a note <small>(optional, or required for “Other”)</small></label><textarea id="rNote" rows="3" placeholder="Example: We received ₱399 but the 1-year plan is ₱699."></textarea>
+  <p class="err" id="rErr" role="alert"></p>
+  <div class="foot"><button class="btn ghost" type="button" onclick="document.getElementById('rDlg').close()">Cancel</button><button class="btn warn" type="button" id="rGo">Reject &amp; email</button></div></div></dialog>
+<div class="toast hidden" id="toast" role="status"></div>
+
+<script>// Supabase connection for Simplify by Anj (My Project).
+// The anon key is safe on a public page. NEVER paste the service_role key here.
+window.STORE_CONFIG = {
+  SUPABASE_URL: "https://djffchbmdvclzcfvoyhi.supabase.co",
+  SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqZmZjaGJtZHZjbHpjZnZveWhpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgwMzk2MDcsImV4cCI6MjEwMzYxNTYwN30.sUC7knaxCyezUfRIyFUH4E3kDeacWL0JNoI5sflNxSk"
+};
+</script>
+<script>// Pastel "3D" icons and the Simplify by Anj logo. Original artwork, no outside files.
+(function(){
+  let n = 0;
+  const g = (id, a, b) => `<linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient>`;
+  const shadow = `<ellipse cx="50" cy="92" rx="30" ry="5" fill="#2E2A4A" opacity=".12"/>`;
+  const shine = (x,y,w,h) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${h/2}" fill="#fff" opacity=".55"/>`;
+  const I = {
+    house(){ const a='h'+n++; return `<defs>${g(a+'r','#FFB3CF','#E9679B')}${g(a+'b','#FFF3B8','#F5C94A')}${g(a+'d','#C8B2FF','#7D5CD6')}</defs>${shadow}
+      <path d="M50 12 88 44 80 50 50 25 20 50 12 44Z" fill="url(#${a}r)"/>
+      <path d="M22 46 50 23 78 46V84a4 4 0 0 1-4 4H26a4 4 0 0 1-4-4Z" fill="url(#${a}b)"/>
+      <rect x="42" y="60" width="16" height="28" rx="3" fill="url(#${a}d)"/>
+      <rect x="28" y="54" width="10" height="10" rx="2" fill="#BFE6FF"/><rect x="62" y="54" width="10" height="10" rx="2" fill="#BFE6FF"/>
+      ${shine(28,48,14,3)}`; },
+    shield(){ const a='s'+n++; return `<defs>${g(a,'#C4E8FF','#4FA3DB')}</defs>${shadow}
+      <path d="M50 10 82 22V46c0 20-14 34-32 42C32 80 18 66 18 46V22Z" fill="url(#${a})"/>
+      <path d="M50 16 76 26V46c0 16-11 28-26 35Z" fill="#fff" opacity=".18"/>
+      <path d="M36 48 46 58 66 38" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+      ${shine(28,24,12,3)}`; },
+    coins(){ const a='c'+n++; const coin=(y)=>`<ellipse cx="50" cy="${y+8}" rx="28" ry="10" fill="#E0A928"/><rect x="22" y="${y}" width="56" height="8" fill="#E0A928"/><ellipse cx="50" cy="${y}" rx="28" ry="10" fill="url(#${a})"/>`;
+      return `<defs>${g(a,'#FFF4B0','#F7CF4F')}</defs>${shadow}${coin(70)}${coin(56)}${coin(42)}${coin(28)}
+      <text x="50" y="34" text-anchor="middle" font-size="14" font-weight="800" fill="#B7801A" font-family="Arial">₱</text>`; },
+    sheet(){ const a='t'+n++; return `<defs>${g(a,'#E6DAFF','#9B7BEA')}</defs>${shadow}
+      <rect x="22" y="10" width="56" height="76" rx="8" fill="url(#${a})"/>
+      <rect x="30" y="24" width="40" height="52" rx="3" fill="#fff"/>
+      <path d="M30 37H70M30 50H70M30 63H70M47 24V76" stroke="#C9B6F5" stroke-width="2.5"/>
+      <rect x="49" y="39" width="19" height="9" fill="#FFD1E3"/><rect x="49" y="52" width="19" height="9" fill="#FFF1B8"/>
+      ${shine(28,14,16,3)}`; },
+    play(){ const a='p'+n++; return `<defs>${g(a,'#FFC4DA','#E35E95')}</defs>${shadow}
+      <rect x="12" y="20" width="76" height="56" rx="14" fill="url(#${a})"/>
+      <path d="M43 36 64 48 43 60Z" fill="#fff"/>${shine(22,25,20,3)}`; },
+    bag(){ const a='b'+n++; return `<defs>${g(a,'#FFC4DA','#E9679B')}</defs>${shadow}
+      <path d="M36 34V28a14 14 0 0 1 28 0v6" fill="none" stroke="#B7477A" stroke-width="6" stroke-linecap="round"/>
+      <path d="M20 34H80L76 84a4 4 0 0 1-4 4H28a4 4 0 0 1-4-4Z" fill="url(#${a})"/>
+      <path d="M42 56a8 8 0 0 1 8-6 8 8 0 0 1 8 6c0 7-8 12-8 12s-8-5-8-12Z" fill="#FFF1B8"/>${shine(26,40,14,3)}`; },
+    phone(){ const a='q'+n++; return `<defs>${g(a,'#CDEBFF','#4FA3DB')}</defs>${shadow}
+      <rect x="28" y="8" width="44" height="80" rx="10" fill="url(#${a})"/>
+      <rect x="34" y="18" width="32" height="56" rx="4" fill="#fff"/>
+      <path d="M38 22h10v10H38ZM52 22h10v10H52ZM38 36h10v10H38Z" fill="#6B4FB8"/>
+      <path d="M53 37h4v4h-4zM58 42h4v4h-4zM53 47h4v4h-4zM40 52h20v4H40zM40 60h14v4H40z" fill="#6B4FB8"/>
+      <rect x="44" y="79" width="12" height="4" rx="2" fill="#fff" opacity=".7"/>`; },
+    mail(){ const a='m'+n++; return `<defs>${g(a,'#FFF4B0','#F2C33F')}</defs>${shadow}
+      <rect x="12" y="24" width="76" height="56" rx="10" fill="url(#${a})"/>
+      <path d="M14 30 50 56 86 30" fill="none" stroke="#E0A928" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M50 64c-3-3-9-6-9-11a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 5-6 8-9 11Z" fill="#E9679B"/>${shine(20,30,16,3)}`; },
+    check(){ const a='k'+n++; return `<defs>${g(a,'#D9C8FF','#7D5CD6')}</defs>${shadow}
+      <circle cx="50" cy="48" r="36" fill="url(#${a})"/>
+      <path d="M34 48 45 59 67 37" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M22 40a30 30 0 0 1 18-22" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".5" fill="none"/>`; },
+    spark(){ const a='x'+n++; return `<defs>${g(a,'#FFE7A0','#F2B134')}</defs>${shadow}
+      <path d="M50 10 60 38 88 48 60 58 50 86 40 58 12 48 40 38Z" fill="url(#${a})"/>
+      <circle cx="78" cy="20" r="6" fill="#FFB3CF"/><circle cx="22" cy="76" r="5" fill="#BFE6FF"/>`; }
+  };
+  window.icon3d = (name, size=64) => `<svg class="i3d" width="${size}" height="${size}" viewBox="0 0 100 100" aria-hidden="true">${(I[name]||I.spark)()}</svg>`;
+
+  // Cute 3D cartoon girl head, long hair, winking, two waving hands (original artwork)
+  const anjCSS = `<style>
+    @keyframes anjWink{0%,70%,82%,100%{transform:scaleY(1)}74%,78%{transform:scaleY(.08)}}
+    @keyframes anjLash{0%,70%,82%,100%{opacity:0}74%,78%{opacity:1}}
+    @keyframes anjWaveL{0%,100%{transform:rotate(12deg)}50%{transform:rotate(-16deg)}}
+    @keyframes anjWaveR{0%,100%{transform:rotate(-12deg)}50%{transform:rotate(16deg)}}
+    @keyframes anjBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-1.5px)}}
+    .anj .wink{transform-box:fill-box;transform-origin:center;animation:anjWink 3.2s ease-in-out infinite}
+    .anj .lash{animation:anjLash 3.2s ease-in-out infinite;opacity:0}
+    .anj .armL{transform-box:view-box;transform-origin:22px 90px;animation:anjWaveL 1.1s ease-in-out infinite}
+    .anj .armR{transform-box:view-box;transform-origin:98px 90px;animation:anjWaveR 1.1s ease-in-out infinite}
+    .anj .head{animation:anjBob 2.2s ease-in-out infinite}
+    @media (prefers-reduced-motion:reduce){.anj *{animation:none!important}}
+  </style>`;
+  window.anjLogo = (size=56) => { const a='anj'+n++; return `<svg class="anj" width="${size}" height="${size}" viewBox="0 0 120 120" role="img" aria-label="Simplify by Anj logo" style="overflow:visible">${anjCSS}
+    <defs>
+      <radialGradient id="${a}bg" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#F3ECFF"/><stop offset=".6" stop-color="#D4C1FF"/><stop offset="1" stop-color="#A98BF0"/></radialGradient>
+      <radialGradient id="${a}skin" cx=".42" cy=".38" r=".7"><stop offset="0" stop-color="#FFF1E6"/><stop offset=".65" stop-color="#FFD9C2"/><stop offset="1" stop-color="#F2B99C"/></radialGradient>
+      <linearGradient id="${a}hair" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7A5580"/><stop offset=".5" stop-color="#4E3155"/><stop offset="1" stop-color="#2F1C33"/></linearGradient>
+      <radialGradient id="${a}eye" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#8C63C9"/><stop offset=".6" stop-color="#4B2F7A"/><stop offset="1" stop-color="#2A1A45"/></radialGradient>
+      <linearGradient id="${a}bow" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFC6DB"/><stop offset="1" stop-color="#E9679B"/></linearGradient>
+      <linearGradient id="${a}top" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFD1E3"/><stop offset="1" stop-color="#F08DB5"/></linearGradient>
+      <radialGradient id="${a}blush" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#FF8FB8" stop-opacity=".8"/><stop offset="1" stop-color="#FF8FB8" stop-opacity="0"/></radialGradient>
+      <clipPath id="${a}c"><circle cx="60" cy="60" r="56"/></clipPath>
+    </defs>
+    <circle cx="60" cy="60" r="56" fill="url(#${a}bg)"/>
+    <ellipse cx="38" cy="20" rx="16" ry="6" fill="#fff" opacity=".45" transform="rotate(-25 38 20)"/>
+    <g clip-path="url(#${a}c)">
+      <g class="head">
+        <!-- long back hair -->
+        <path d="M31 50C29 22 45 12 60 12s31 10 29 38l5 58c-10 8-58 8-68 0Z" fill="url(#${a}hair)"/>
+        <!-- face -->
+        <ellipse cx="60" cy="52" rx="23" ry="24" fill="url(#${a}skin)"/>
+        <!-- bangs + front strands -->
+        <path d="M36 50C36 30 48 23 60 23s24 7 24 27c-4-7-11-11-19-11-2 4-6 6-10 6-4-4-11-5-19 5Z" fill="url(#${a}hair)"/>
+        <path d="M37 44C31 62 34 82 29 100l9-2c1-16 2-34 3-50Z" fill="url(#${a}hair)"/>
+        <path d="M83 44c6 18 3 38 8 56l-9-2c-1-16-2-34-3-50Z" fill="url(#${a}hair)"/>
+        <path d="M46 29c6-4 14-5 20-3" stroke="#fff" stroke-width="2.5" stroke-linecap="round" opacity=".45" fill="none"/>
+        <!-- eyes: left open, right winks -->
+        <ellipse cx="51" cy="55" rx="4.6" ry="5.8" fill="url(#${a}eye)"/>
+        <circle cx="49.6" cy="52.8" r="1.9" fill="#fff"/><circle cx="52.6" cy="57.6" r=".9" fill="#fff" opacity=".8"/>
+        <g class="wink"><ellipse cx="69" cy="55" rx="4.6" ry="5.8" fill="url(#${a}eye)"/>
+          <circle cx="67.6" cy="52.8" r="1.9" fill="#fff"/><circle cx="70.6" cy="57.6" r=".9" fill="#fff" opacity=".8"/></g>
+        <path class="lash" d="M64 56q5 3.5 10 0" stroke="#3A2340" stroke-width="2" stroke-linecap="round" fill="none"/>
+        <path d="M46 47.5q5-3 9-.5M65 47q4-2.5 9 .5" stroke="#5A3A60" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+        <!-- blush + smile -->
+        <ellipse cx="44" cy="63" rx="6" ry="3.8" fill="url(#${a}blush)"/><ellipse cx="76" cy="63" rx="6" ry="3.8" fill="url(#${a}blush)"/>
+        <path d="M54 64q6 7 12 0q-6 2.5-12 0Z" fill="#E0587F"/>
+        <!-- bow -->
+        <g transform="rotate(20 80 27)">
+          <path d="M80 27C75 19 65 19 65 27s10 8 15 0Z" fill="url(#${a}bow)"/>
+          <path d="M80 27C85 19 95 19 95 27s-10 8-15 0Z" fill="url(#${a}bow)"/>
+          <ellipse cx="70" cy="23.5" rx="3.3" ry="1.6" fill="#fff" opacity=".55"/><ellipse cx="90" cy="23.5" rx="3.3" ry="1.6" fill="#fff" opacity=".55"/>
+          <circle cx="80" cy="27" r="4.2" fill="#E9679B"/><circle cx="78.8" cy="25.7" r="1.5" fill="#fff" opacity=".7"/>
+        </g>
+      </g>
+    </g>
+    <!-- waving hands: 5 fingers each (no arms) -->
+    <g class="armL"><g transform="translate(22 82) scale(1.15 1.15)">
+      <rect x="-7.75" y="-12.5" width="3.9" height="14.5" rx="1.95" fill="url(#${a}skin)" stroke="#E8A987" stroke-width=".6" transform="rotate(-16 -5.8 -1)"/><rect x="-3.85" y="-15.5" width="3.9" height="16.5" rx="1.95" fill="url(#${a}skin)" stroke="#E8A987" stroke-width=".6" transform="rotate(-5 -1.9 -2)"/><rect x="0.15" y="-14.5" width="3.9" height="15.5" rx="1.95" fill="url(#${a}skin)" stroke="#E8A987" stroke-width=".6" transform="rotate(5 2.1 -2)"/><rect x="4.15" y="-11" width="3.5" height="13" rx="1.75" fill="url(#${a}skin)" stroke="#E8A987" stroke-width=".6" transform="rotate(15 5.9 -1)"/>
+      <rect x="-10.7" y="-2" width="4.4" height="11" rx="2.2" fill="url(#${a}skin)" stroke="#E8A987" stroke-width=".6" transform="rotate(-50 -8.5 7)"/>
+      <rect x="-8.2" y="-4" width="16.4" height="15" rx="7" fill="url(#${a}skin)" stroke="#E8A987" stroke-width=".6"/>
+      <rect x="-8.2" y="-4" width="16.4" height="15" rx="7" fill="url(#${a}skin)"/>
+      <ellipse cx="-2.5" cy="1" rx="3.4" ry="2" fill="#fff" opacity=".5"/>
+      <path d="M-4.5 6.5q4.5 2.4 9 0" stroke="#EDB08F" stroke-width="1" fill="none" stroke-linecap="round"/>
+    </g></g>
+    <g class="armR"><g transform="translate(98 82) scale(-1.15 1.15)">
+      <rect x="-7.75" y="-12.5" width="3.9" height="14.5" rx="1.95" fill="url(#${a}skin)" stroke="#E8A987" stroke-width=".6" transform="rotate(-16 -5.8 -1)"/><rect x="-3.85" y="-15.5" width="3.9" height="16.5" rx="1.95" fill="url(#${a}skin)" stroke="#E8A987" stroke-width=".6" transform="rotate(-5 -1.9 -2)"/><rect x="0.15" y="-14.5" width="3.9" height="15.5" rx="1.95" fill="url(#${a}skin)" stroke="#E8A987" stroke-width=".6" transform="rotate(5 2.1 -2)"/><rect x="4.15" y="-11" width="3.5" height="13" rx="1.75" fill="url(#${a}skin)" stroke="#E8A987" stroke-width=".6" transform="rotate(15 5.9 -1)"/>
+      <rect x="-10.7" y="-2" width="4.4" height="11" rx="2.2" fill="url(#${a}skin)" stroke="#E8A987" stroke-width=".6" transform="rotate(-50 -8.5 7)"/>
+      <rect x="-8.2" y="-4" width="16.4" height="15" rx="7" fill="url(#${a}skin)" stroke="#E8A987" stroke-width=".6"/>
+      <rect x="-8.2" y="-4" width="16.4" height="15" rx="7" fill="url(#${a}skin)"/>
+      <ellipse cx="-2.5" cy="1" rx="3.4" ry="2" fill="#fff" opacity=".5"/>
+      <path d="M-4.5 6.5q4.5 2.4 9 0" stroke="#EDB08F" stroke-width="1" fill="none" stroke-linecap="round"/>
+    </g></g>
+  </svg>`; };
+})();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+const cfg = window.STORE_CONFIG || {};
+document.getElementById('loginLogo').innerHTML = anjLogo(80);
+document.getElementById('barLogo').innerHTML = anjLogo(40);
+const sb = (window.supabase && cfg.SUPABASE_URL) ? window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY, { auth: { storageKey: 'simplify-store-admin-auth' } }) : null;
+if (!sb) document.addEventListener('DOMContentLoaded', () => { document.getElementById('loginErr').textContent = 'Could not connect to the database. Check your internet, then refresh.'; });
+const $ = id => document.getElementById(id);
+const peso = n => new Intl.NumberFormat('en-PH',{style:'currency',currency:'PHP'}).format(Number(n)||0);
+const esc = s => String(s ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pub = p => !p ? '' : /^(https?:\/\/|preview\/)/.test(p) ? p : sb.storage.from('store-assets').getPublicUrl(p).data.publicUrl;
+const fmtDate = d => new Date(d).toLocaleString('en-PH',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});
+const extOf = f => ((f.name.split('.').pop()||'bin').toLowerCase().replace(/[^a-z0-9]/g,'')) || 'bin';
+const safeName = n => n.replace(/[^a-zA-Z0-9._-]+/g,'-').slice(0,80);
+const refOf = o => o.id.slice(0,8).toUpperCase();
+
+let orders = [], products = [], priv = {}, settings = {}, editing = null;
+
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.remove('hidden'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.add('hidden'),3200); }
+
+/* ---------- Auth ---------- */
+$('loginForm').addEventListener('submit', async e => {
+  e.preventDefault(); $('loginErr').textContent='';
+  const { error } = await sb.auth.signInWithPassword({ email:$('l_email').value.trim(), password:$('l_pass').value });
+  if (error) $('loginErr').textContent = 'Wrong email or password.';
+});
+$('logout').addEventListener('click', () => sb.auth.signOut({ scope: 'local' }));
+
+// Deferred so Supabase calls don't run inside the auth callback (avoids a known lock-up).
+// Token refreshes are ignored: the admin check runs once per login, not on every refresh.
+let adminUid = null;
+sb.auth.onAuthStateChange((evt, session) => {
+  if (evt === 'TOKEN_REFRESHED' || evt === 'USER_UPDATED') return;
+  setTimeout(() => onSession(evt, session), 0);
+});
+async function onSession(evt, session){
+  if (!session) {
+    adminUid = null;
+    $('appView').classList.add('hidden'); $('appView').dataset.ready=''; $('loginView').classList.remove('hidden');
+    return;
+  }
+  if (adminUid === session.user.id) return;          // already checked this login
+  const { data: ok, error } = await sb.rpc('is_store_admin');
+  if (error) { $('loginErr').textContent = 'Could not check admin access. Wait a minute, then refresh.'; return; }
+  if (!ok) { $('loginErr').textContent = 'This account is not a store admin.'; await sb.auth.signOut({ scope: 'local' }); return; }
+  adminUid = session.user.id;
+  $('loginErr').textContent = '';
+  $('loginView').classList.add('hidden'); $('appView').classList.remove('hidden');
+  if (!$('appView').dataset.ready) { $('appView').dataset.ready = '1'; loadAll(); }
+}
+
+/* ---------- Tabs ---------- */
+document.querySelector('.tabs').addEventListener('click', e => {
+  const b = e.target.closest('.tab'); if (!b) return;
+  document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', t===b));
+  ['orders','products','settings'].forEach(n => $('tab-'+n).classList.toggle('hidden', n!==b.dataset.tab));
+});
+
+async function loadAll(){ await Promise.all([loadSettings(), loadProducts()]); await loadOrders(); }
+
+/* ---------- Orders ---------- */
+async function loadOrders(){
+  const { data, error } = await sb.from('store_orders').select('*').order('created_at',{ascending:false}).limit(1000);
+  if (error) { $('ordersTbl').innerHTML = '<p class="empty">Orders could not load. Refresh the page.</p>'; return; }
+  orders = data || []; renderStats(); renderOrders(); renderProducts();
+}
+$('refresh').addEventListener('click', loadOrders);
+['q','fStatus','fProduct'].forEach(id => $(id).addEventListener('input', renderOrders));
+
+function renderStats(){
+  const now = new Date(), m = now.getMonth(), y = now.getFullYear();
+  const appr = orders.filter(o => o.status==='approved');
+  const month = appr.filter(o => { const d=new Date(o.created_at); return d.getMonth()===m && d.getFullYear()===y; });
+  const pend = orders.filter(o => o.status==='pending').length;
+  const sum = a => a.reduce((s,o)=>s+Number(o.amount||0),0);
+  $('stats').innerHTML = `
+    <div class="stat">${icon3d('bag',44)}<div><b>${pend}</b><span>Waiting for approval</span></div></div>
+    <div class="stat">${icon3d('coins',44)}<div><b>${peso(sum(month))}</b><span>Sales this month</span></div></div>
+    <div class="stat">${icon3d('spark',44)}<div><b>${peso(sum(appr))}</b><span>Total sales</span></div></div>
+    <div class="stat">${icon3d('mail',44)}<div><b>${appr.length}</b><span>Orders delivered</span></div></div>`;
+}
+
+function filtered(){
+  const q = $('q').value.trim().toLowerCase(), st = $('fStatus').value, pr = $('fProduct').value;
+  return orders.filter(o => (!st || o.status===st) && (!pr || o.product_name===pr) &&
+    (!q || [o.buyer_name,o.buyer_email,o.reference_no,o.product_name,o.buyer_phone,refOf(o)].join(' ').toLowerCase().includes(q)));
+}
+
+function renderOrders(){
+  const names = [...new Set(orders.map(o=>o.product_name).filter(Boolean))];
+  const cur = $('fProduct').value;
+  $('fProduct').innerHTML = '<option value="">All products</option>' + names.map(n=>`<option ${n===cur?'selected':''}>${esc(n)}</option>`).join('');
+  const list = filtered();
+  if (!list.length) { $('ordersTbl').innerHTML = `<p class="empty">${orders.length ? 'No orders match your filters.' : 'No orders yet. Share your store link to get your first sale.'}</p>`; return; }
+  $('ordersTbl').innerHTML = `<table><thead><tr><th>Date</th><th>Buyer</th><th>Product</th><th>Payment</th><th>Status</th><th>Actions</th></tr></thead><tbody>${
+    list.map(o => `<tr>
+      <td>${fmtDate(o.created_at)}<span class="sub">#${refOf(o)}</span></td>
+      <td>${esc(o.buyer_name)}<span class="sub">${esc(o.buyer_email)}</span>${o.buyer_phone?`<span class="sub">${esc(o.buyer_phone)}</span>`:''}</td>
+      <td>${esc(o.product_name||'—')}<span class="sub">${peso(o.amount)} · <b>${esc(o.language||'English')}</b></span></td>
+      <td>${esc(o.payment_method||'')}<span class="sub">Ref: ${esc(o.reference_no||'—')}</span>${dupOf(o)?`<span class="dupw">⚠ Ref also used in #${refOf(dupOf(o))}</span>`:''}</td>
+      <td><span class="pill ${o.status}">${o.status[0].toUpperCase()+o.status.slice(1)}</span>${o.delivered_at?`<span class="sub">Sent ${fmtDate(o.delivered_at)}</span>`:''}${o.status==='rejected'&&o.notes?`<span class="sub">Reason: ${esc(o.notes)}</span>`:''}</td>
+      <td><div class="acts">
+        ${o.proof_path?`<button class="btn ghost sm" data-a="proof" data-id="${o.id}">View proof</button>`:''}
+        ${Array.isArray(o.custom)&&o.custom.length?`<button class="btn sm" data-a="details" data-id="${o.id}">Order details</button>`:''}
+        ${o.status==='pending'?`<button class="btn sm" data-a="approve" data-id="${o.id}">Approve &amp; email</button><button class="btn warn sm" data-a="reject" data-id="${o.id}">Reject</button>`:''}
+        ${o.status==='approved'?`<button class="btn ghost sm" data-a="resend" data-id="${o.id}">Email again</button><button class="btn ghost sm" data-a="copy" data-id="${o.id}">Copy message</button>`:''}
+        ${o.status==='rejected'?`<button class="btn ghost sm" data-a="reason" data-id="${o.id}">Email reason</button><button class="btn ghost sm" data-a="undo" data-id="${o.id}">Move to pending</button>`:''}
+        <button class="btn warn sm" data-a="delorder" data-id="${o.id}">🗑 Delete</button>
+      </div></td></tr>`).join('')
+  }</tbody></table>`;
+}
+
+$('ordersTbl').addEventListener('click', async e => {
+  const b = e.target.closest('button[data-a]'); if (!b) return;
+  const o = orders.find(x => x.id===b.dataset.id); if (!o) return;
+  const a = b.dataset.a;
+  if (a==='details') { openDetails(o); return; }
+  if (a==='proof') {
+    const w = window.open('about:blank','_blank');
+    const { data, error } = await sb.storage.from('payment-proofs').createSignedUrl(o.proof_path, 3600);
+    if (error) { w && w.close(); return toast('Proof file not found.'); }
+    if (w) w.location = data.signedUrl; else location.href = data.signedUrl;
+  }
+  if (a==='approve' || a==='resend') {
+    const hasFile = hasDelivery(o);
+    if (a==='approve') {
+      const dup = dupOf(o);
+      const check = `Before approving, open your ${o.payment_method||'bank or e-wallet'} app and check your transaction history.\n\nLook for: ${peso(o.amount)} received, ref no. ${o.reference_no||'(none)'}.` + (dup ? `\n\n⚠ WARNING: this ref no. was also used in order #${refOf(dup)} (${dup.buyer_name}).` : '') + `\n\nDid you find this payment in your app?`;
+      if (!confirm(check)) return;
+      if (!hasFile && !confirm('This product has no file to send (for example, a done-for-you service).\n\nApprove and send a payment confirmation email instead?')) return;
+    }
+    if (a==='resend' && !confirm(`Send the ${o.product_name||'order'} email again to ${o.buyer_email}?`)) return;
+    b.disabled = true; b.textContent = 'Sending…';
+    const msg = hasFile ? await buildMessage(o) : confirmationMessage(o);
+    if (!msg) { b.disabled=false; renderOrders(); return toast(`Add the ${o.language||'English'} file or link to this product first (Products tab).`); }
+    if (a==='approve') {
+      const { error } = await sb.from('store_orders').update({ status:'approved' }).eq('id', o.id);
+      if (error) { b.disabled=false; renderOrders(); return toast('Could not update the order. Try again.'); }
+    }
+    // Send automatically from the store Gmail. If that fails, open the manual Send box as a backup.
+    const res = await autoSend(o, hasFile ? { kind:'deliver' } : { kind:'custom', subject: msg.subject, body: msg.body });
+    if (res.ok) toast(`✅ ${a==='approve' ? 'Approved and emailed' : 'Emailed again'} to ${o.buyer_email}`);
+    else { toast(res.msg + ' Send it manually instead.'); openSend(o.buyer_email, msg.subject, msg.body); }
+    loadOrders();
+  }
+  if (a==='copy') {
+    const msg = await buildMessage(o);
+    if (!msg) return toast('Add a file or link to this product first.');
+    try { await navigator.clipboard.writeText(msg.body); toast('Message copied. Paste it in Messenger or Viber.'); }
+    catch { prompt('Copy this message:', msg.body); }
+  }
+  if (a==='reject' || a==='reason') { openReject(o, a==='reason'); return; }
+  if (a==='delorder') {
+    if (!confirm(`Permanently delete order #${refOf(o)} from ${o.buyer_name}?\n\nThis removes it from your dashboard and sales totals, together with the payment screenshot. This cannot be undone.`)) return;
+    b.disabled = true;
+    const files = (o.custom||[]).filter(f => typeof f.value==='string' && f.value.startsWith('file:')).map(f => f.value.slice(5));
+    if (o.proof_path) await sb.storage.from('payment-proofs').remove([o.proof_path]);
+    if (files.length) await sb.storage.from('order-uploads').remove(files);
+    const { error } = await sb.from('store_orders').delete().eq('id', o.id);
+    if (error) { b.disabled=false; return toast('Could not delete the order. Try again.'); }
+    toast('Order deleted.'); loadOrders(); return;
+  }
+  if (a==='undo') {
+    await sb.from('store_orders').update({ status:'pending' }).eq('id', o.id);
+    loadOrders();
+  }
+});
+
+const REASONS = [
+  ['Payment not found', 'We checked our account but could not find your payment yet.'],
+  ['Amount does not match', 'The amount we received does not match the price of your order.'],
+  ['Reference number already used', 'The reference number you sent was already used in another order.'],
+  ['Screenshot is unclear', 'We could not clearly read the payment screenshot you uploaded.'],
+  ['Other', '']
+];
+function openReject(o, emailOnly){
+  $('rTitle').textContent = `${emailOnly ? 'Email reason' : 'Reject order'} #${refOf(o)} · ${o.buyer_name}`;
+  $('rList').innerHTML = REASONS.map((r,i)=>`<label class="check"><input type="radio" name="rr" value="${i}" ${ (o.notes? r[0]===o.notes : i===0) ? 'checked':''}> ${esc(r[0])}</label>`).join('');
+  $('rNote').value = ''; $('rErr').textContent = '';
+  $('rGo').textContent = emailOnly ? 'Open email' : 'Reject & email';
+  $('rGo').onclick = async () => {
+    const i = +(document.querySelector('input[name=rr]:checked')||{}).value;
+    const extra = $('rNote').value.trim();
+    if (REASONS[i][0]==='Other' && !extra) { $('rErr').textContent = 'Type the reason in the box.'; return; }
+    const w = null;
+    if (!emailOnly) {
+      const { error } = await sb.from('store_orders').update({ status:'rejected', notes: REASONS[i][0]==='Other' ? extra.slice(0,120) : REASONS[i][0] }).eq('id', o.id);
+      if (error) { w && w.close(); $('rErr').textContent = 'Could not update the order. Try again.'; return; }
+    }
+    const first = (o.buyer_name||'').split(' ')[0];
+    const why = [REASONS[i][1], extra].filter(Boolean).join(' ');
+    const body = `Hi ${first},\n\nThank you for your order of ${o.product_name||'our product'} (order ref ${refOf(o)}).\n\nUnfortunately, we could not confirm your payment. ${why}\n\nNo worries, this is easy to fix. Just reply to this email with:\n• A clear screenshot of your payment receipt\n• The correct reference number\n\nOnce we confirm it, we'll process your order right away.\n\nIf you have questions, you can also message us on WhatsApp: 0933-855-2646.\n\nSalamat po!\n${settings.store_name||'Simplify by Anj'}`;
+    const su = `About your order ${refOf(o)}: payment not confirmed yet`;
+    $('rDlg').close();
+    w && w.close();
+    const res = await autoSend(o, { kind:'custom', subject: su, body });
+    if (res.ok) toast(`✅ ${emailOnly ? 'Reason emailed' : 'Rejected and emailed'} to ${o.buyer_email}`);
+    else { toast(res.msg + ' Send it manually instead.'); openSend(o.buyer_email, su, body); } loadOrders();
+  };
+  $('rDlg').showModal();
+}
+async function openDetails(o){
+  const rows = await Promise.all((o.custom||[]).map(async f => {
+    let v = f.value || '—';
+    if (typeof v==='string' && v.startsWith('file:')) {
+      const { data } = await sb.storage.from('order-uploads').createSignedUrl(v.slice(5), 3600);
+      v = data ? `<a href="${data.signedUrl}" target="_blank" rel="noopener">Open photo</a>` : 'Photo not found';
+    } else v = esc(v).replace(/; /g,'<br>• ').replace(/\n/g,'<br>');
+    return `<tr><td>${esc(f.label)}</td><td>${v}</td></tr>`;
+  }));
+  $('dTitle').textContent = `Order #${refOf(o)} · ${o.buyer_name}`;
+  $('dBody').innerHTML = `<table>${rows.join('')}</table>`;
+  $('dCopy').onclick = async () => {
+    const txt = (o.custom||[]).map(f=>`${f.label}: ${f.value||''}`).join('\n');
+    try { await navigator.clipboard.writeText(txt); toast('Details copied.'); } catch { prompt('Copy:', txt); }
+  };
+  $('dDlg').showModal();
+}
+
+const IS_MOBILE = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
+const IS_IOS = /iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
+function webGmailUrl(to, su, body){ return gmailBase()+'&to='+encodeURIComponent(to)+'&su='+encodeURIComponent(su)+'&body='+encodeURIComponent(body); }
+// Phones: Gmail's website ignores prefilled drafts, so show a box with app buttons (each tap is a real user tap).
+function openSend(to, su, body){
+  const q = 'to='+encodeURIComponent(to)+'&subject='+encodeURIComponent(su)+'&body='+encodeURIComponent(body);
+  $('sTo').textContent = to; $('sSub').textContent = su;
+  $('sGmailApp').href = IS_IOS ? 'googlegmail:///co?'+q : 'intent://co?'+q+'#Intent;scheme=googlegmail;package=com.google.android.gm;S.browser_fallback_url='+encodeURIComponent('mailto:'+encodeURIComponent(to)+'?subject='+encodeURIComponent(su)+'&body='+encodeURIComponent(body))+';end';
+  $('sMail').href = 'mailto:'+encodeURIComponent(to)+'?subject='+encodeURIComponent(su)+'&body='+encodeURIComponent(body);
+  $('sWeb').href = webGmailUrl(to, su, body);
+  $('sCopy').onclick = async () => {
+    const txt = 'To: '+to+'\nSubject: '+su+'\n\n'+body;
+    try { await navigator.clipboard.writeText(txt); toast('Copied. Paste it in your email app.'); } catch { prompt('Copy this message:', txt); }
+  };
+  $('sDlg').showModal();
+}
+async function autoSend(o, payload){
+  try {
+    const { data, error } = await sb.functions.invoke('send-order-email', { body: { order_id: o.id, ...payload } });
+    if (error) { let m = 'Auto-email failed.'; try { const j = await error.context.json(); if (j && j.error) m = j.error; } catch {} return { ok:false, msg:m }; }
+    return { ok: !!(data && data.ok), msg: (data && data.error) || '' };
+  } catch (e) { return { ok:false, msg:'Auto-email failed (no internet?).' }; }
+}
+function gmailBase(){ const a=(settings.sender_email||'').trim(); return 'https://mail.google.com/mail/?view=cm&fs=1'+(a?'&authuser='+encodeURIComponent(a):''); }
+function normRef(r){ return String(r||'').replace(/[^0-9a-z]/gi,'').toLowerCase(); }
+function dupOf(o){ const r=normRef(o.reference_no); if (r.length<4) return null; return orders.find(x => x.id!==o.id && x.status!=='rejected' && normRef(x.reference_no)===r) || null; }
+function hasDelivery(o){ const pv = priv[o.product_id]||{}; const tl = o.language==='Tagalog'; return !!(tl ? (pv.file_path_tl||pv.delivery_link_tl) : (pv.file_path||pv.delivery_link)); }
+function confirmationMessage(o){
+  const plan = (o.custom||[]).find(f=>f.id==='plan');
+  const first = (o.buyer_name||'').split(' ')[0];
+  return { subject: `Payment confirmed: ${o.product_name||'your order'}`,
+    body: `Hi ${first},\n\nThank you! We received your payment of ${peso(o.amount)} for ${o.product_name||'your order'}${plan?` (${plan.value})`:''}.\n\nWe're now preparing your order. We'll send everything to this email within 1–2 days.\n\nOrder ref: ${refOf(o)}\n\nSalamat!\n${settings.store_name||'Simplify by Anj'}` };
+}
+async function buildMessage(o){
+  const pv = priv[o.product_id] || {};
+  const tl = o.language === 'Tagalog';
+  const fp = tl ? pv.file_path_tl : pv.file_path, dl = tl ? pv.delivery_link_tl : pv.delivery_link;
+  const links = [];
+  if (fp) {
+    const { data } = await sb.storage.from('product-files').createSignedUrl(fp, 60*60*24*7, { download: fp.split('/').pop() });
+    if (data) links.push(data.signedUrl);
+  }
+  if (dl) links.push(dl);
+  if (!links.length) return null;
+  const fill = t => String(t||'')
+    .replaceAll('{name}', (o.buyer_name||'').split(' ')[0])
+    .replaceAll('{product}', o.product_name||'order')
+    .replaceAll('{link}', links.join('\n\n'))
+    .replaceAll('{ref}', refOf(o))
+    .replaceAll('{language}', o.language||'English')
+    .replaceAll('{store}', settings.store_name||'');
+  return { subject: fill(settings.email_subject || 'Your order: {product}'), body: fill(settings.email_body || 'Hi {name},\n\nHere is your {product}:\n\n{link}\n\nOrder ref: {ref}\n\n{store}') };
+}
+
+$('csv').addEventListener('click', () => {
+  const rows = [['Date','Order #','Buyer','Email','Mobile','Product','Version','Amount','Paid using','Reference no.','Status','Sent on','Order details']];
+  filtered().forEach(o => rows.push([fmtDate(o.created_at), refOf(o), o.buyer_name, o.buyer_email, o.buyer_phone||'', o.product_name||'', o.language||'English', o.amount, o.payment_method||'', o.reference_no||'', o.status, o.delivered_at?fmtDate(o.delivered_at):'', (o.custom||[]).map(f=>`${f.label}: ${f.value||''}`).join(' | ')]));
+  const csv = rows.map(r => r.map(v => `"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['\ufeff'+csv], {type:'text/csv'}));
+  a.download = `orders-${new Date().toISOString().slice(0,10)}.csv`; a.click();
+});
+
+/* ---------- Products ---------- */
+async function loadProducts(){
+  const [p, v] = await Promise.all([
+    sb.from('store_products').select('*').order('sort').order('created_at'),
+    sb.from('store_product_private').select('*')
+  ]);
+  products = p.data || []; priv = {};
+  (v.data || []).forEach(r => priv[r.product_id] = r);
+  renderProducts();
+}
+
+function renderProducts(){
+  if (!products.length) { $('productsTbl').innerHTML = '<p class="empty">No products yet. Tap Add product to list your first tracker or tutorial.</p>'; return; }
+  $('productsTbl').innerHTML = `<table><thead><tr><th>Product</th><th>Type</th><th>Price</th><th>Delivers</th><th>Status</th><th>Sold</th><th>Actions</th></tr></thead><tbody>${
+    products.map(p => {
+      const pv = priv[p.id] || {};
+      const sold = orders.filter(o => o.product_id===p.id && o.status==='approved').length;
+      const en = [pv.file_path?'File':'', pv.delivery_link?'Link':''].filter(Boolean).join(' + ');
+      const tl = [pv.file_path_tl?'File':'', pv.delivery_link_tl?'Link':''].filter(Boolean).join(' + ');
+      const del = (en||tl) ? [en?`English: ${en}`:'', tl?`Tagalog: ${tl}`:''].filter(Boolean).join('<br>') : '<span style="color:var(--err)">Nothing yet</span>';
+      return `<tr>
+        <td>${esc(p.name)}<span class="sub">${esc(p.category||'')}</span></td>
+        <td>${esc(p.kind||'')}</td><td>${peso(p.price)}</td><td>${del}</td>
+        <td><span class="pill ${p.active?'approved':'off'}">${p.active?'On store':'Hidden'}</span></td>
+        <td>${sold}</td>
+        <td><div class="acts"><button class="btn ghost sm" data-a="edit" data-id="${p.id}">Edit</button><button class="btn warn sm" data-a="del" data-id="${p.id}">Delete</button></div></td>
+      </tr>`;}).join('')
+  }</tbody></table>`;
+}
+
+$('addProduct').addEventListener('click', () => openProduct(null));
+$('productsTbl').addEventListener('click', async e => {
+  const b = e.target.closest('button[data-a]'); if (!b) return;
+  const p = products.find(x => x.id===b.dataset.id); if (!p) return;
+  if (b.dataset.a==='edit') openProduct(p);
+  if (b.dataset.a==='del') {
+    if (!confirm(`Delete "${p.name}"? Past orders stay in your tracker.`)) return;
+    const { error } = await sb.from('store_products').delete().eq('id', p.id);
+    if (error) return toast('Could not delete. Try hiding it instead.');
+    toast('Product deleted.'); loadProducts();
+  }
+});
+
+function openProduct(p){
+  editing = p; const pv = p ? (priv[p.id]||{}) : {};
+  $('pTitle').textContent = p ? 'Edit product' : 'Add product';
+  $('p_name').value = p?.name || ''; $('p_cat').value = p?.category || ''; $('p_kind').value = p?.kind || '';
+  $('p_price').value = p?.price ?? ''; $('p_sort').value = p?.sort ?? 0;
+  $('p_sum').value = p?.summary || ''; $('p_desc').value = p?.description || '';
+  $('p_link').value = pv.delivery_link || ''; $('p_active').checked = p ? !!p.active : true;
+  $('p_link_tl').value = pv.delivery_link_tl || '';
+  $('p_cover').value = ''; $('p_file').value = ''; $('p_file_tl').value = '';
+  $('curCover').textContent = p?.cover_path ? 'Current cover uploaded. Choose a new image to replace it.' : '';
+  $('curFile').textContent = pv.file_path ? 'Current file: ' + pv.file_path.split('/').pop() : '';
+  $('curFileTl').textContent = pv.file_path_tl ? 'Current file: ' + pv.file_path_tl.split('/').pop() : '';
+  $('pErr').textContent = ''; $('pDlg').showModal();
+}
+$('pCancel').addEventListener('click', () => $('pDlg').close());
+
+$('pForm').addEventListener('submit', async e => {
+  e.preventDefault(); const err = $('pErr'); err.textContent = '';
+  const name = $('p_name').value.trim(), price = Number($('p_price').value);
+  const link = $('p_link').value.trim(), linkTl = $('p_link_tl').value.trim();
+  if (!name) return err.textContent = 'Enter a product name.';
+  if (!(price >= 0) || $('p_price').value==='') return err.textContent = 'Enter a price.';
+  if ((link && !/^https?:\/\//i.test(link)) || (linkTl && !/^https?:\/\//i.test(linkTl))) return err.textContent = 'Links must start with https://';
+  const btn = $('pSave'); btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    const id = editing?.id || crypto.randomUUID();
+    const pv = priv[id] || {};
+    let cover_path = editing?.cover_path || null, file_path = pv.file_path || null, file_path_tl = pv.file_path_tl || null;
+    const cover = $('p_cover').files[0], file = $('p_file').files[0], fileTl = $('p_file_tl').files[0];
+    if (cover) {
+      cover_path = `covers/${id}-${Date.now()}.${extOf(cover)}`;
+      const r = await sb.storage.from('store-assets').upload(cover_path, cover, { contentType: cover.type });
+      if (r.error) throw r.error;
+    }
+    if (file) {
+      if (file.size > 50*1024*1024) throw new Error('File is over 50 MB. Upload videos to YouTube or Drive and use a link instead.');
+      file_path = `${id}/${Date.now()}-${safeName(file.name)}`;
+      const r = await sb.storage.from('product-files').upload(file_path, file, { contentType: file.type || 'application/octet-stream' });
+      if (r.error) throw r.error;
+    }
+    if (fileTl) {
+      if (fileTl.size > 50*1024*1024) throw new Error('File is over 50 MB. Upload videos to YouTube or Drive and use a link instead.');
+      file_path_tl = `${id}/tl-${Date.now()}-${safeName(fileTl.name)}`;
+      const r = await sb.storage.from('product-files').upload(file_path_tl, fileTl, { contentType: fileTl.type || 'application/octet-stream' });
+      if (r.error) throw r.error;
+    }
+    const langs = [(file_path || link) ? 'en' : '', (file_path_tl || linkTl) ? 'tl' : ''].filter(Boolean).join(',') || 'en';
+    const row = { id, name, price, category: $('p_cat').value.trim() || 'General', kind: $('p_kind').value.trim() || null,
+      summary: $('p_sum').value.trim() || null, description: $('p_desc').value.trim() || null,
+      cover_path, langs, active: $('p_active').checked, sort: Number($('p_sort').value)||0 };
+    const r1 = await sb.from('store_products').upsert(row); if (r1.error) throw r1.error;
+    const r2 = await sb.from('store_product_private').upsert({ product_id:id, file_path, delivery_link: link || null, file_path_tl, delivery_link_tl: linkTl || null }); if (r2.error) throw r2.error;
+    $('pDlg').close(); toast('Product saved.'); loadProducts();
+  } catch (x) {
+    console.error(x); err.textContent = x.message?.includes('50 MB') ? x.message : 'Could not save. Check your connection and try again.';
+  } finally { btn.disabled = false; btn.textContent = 'Save product'; }
+});
+
+/* ---------- Settings ---------- */
+async function loadSettings(){
+  const { data } = await sb.from('store_settings').select('*').eq('id',1).maybeSingle();
+  settings = data || {};
+  $('barName').textContent = settings.store_name || 'Simplify by Anj';
+  $('s_name').value = settings.store_name || ''; $('s_tag').value = settings.tagline || '';
+  $('s_acct').value = settings.account_name || ''; $('s_pay').value = settings.payment_note || '';
+  $('s_del').value = settings.delivery_note || '';
+  $('s_subj').value = settings.email_subject || ''; $('s_body').value = settings.email_body || '';
+  $('s_sender').value = settings.sender_email || '';
+  if (settings.qr_path) { $('qrPrev').src = pub(settings.qr_path); $('qrPrev').classList.remove('hidden'); }
+}
+$('s_qr').addEventListener('change', e => {
+  const f = e.target.files[0]; if (!f) return;
+  $('qrPrev').src = URL.createObjectURL(f); $('qrPrev').classList.remove('hidden');
+});
+$('settingsForm').addEventListener('submit', async e => {
+  e.preventDefault(); $('setErr').textContent = '';
+  const btn = $('saveSettings'); btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    let qr_path = settings.qr_path || null;
+    const qr = $('s_qr').files[0];
+    if (qr) {
+      qr_path = `qr/qr-${Date.now()}.${extOf(qr)}`;
+      const r = await sb.storage.from('store-assets').upload(qr_path, qr, { contentType: qr.type });
+      if (r.error) throw r.error;
+    }
+    const upd = { store_name:$('s_name').value.trim(), tagline:$('s_tag').value.trim(), account_name:$('s_acct').value.trim(),
+      payment_note:$('s_pay').value.trim(), delivery_note:$('s_del').value.trim(), qr_path,
+      email_subject:$('s_subj').value.trim(), sender_email:$('s_sender').value.trim()||null, email_body:$('s_body').value, updated_at:new Date().toISOString() };
+    const { error } = await sb.from('store_settings').update(upd).eq('id',1);
+    if (error) throw error;
+    $('s_qr').value = ''; toast('Settings saved.'); loadSettings();
+  } catch (x) { console.error(x); $('setErr').textContent = 'Could not save settings. Try again.'; }
+  finally { btn.disabled = false; btn.textContent = 'Save settings'; }
+});
+</script>
+</body>
+</html>
